@@ -31,9 +31,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import okhttp3.OkHttpClient;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.dew.config.properties.MinIoProperties;
@@ -74,6 +76,12 @@ public class MinIOObjectStorageRepository {
     log.info("{} MinIO credentials provider created.", provider.getClass().getSimpleName());
     builder.credentialsProvider(provider);
 
+    builder.httpClient(new OkHttpClient.Builder()
+      .connectTimeout(10, TimeUnit.SECONDS)
+      .readTimeout(10, TimeUnit.SECONDS)
+      .writeTimeout(10, TimeUnit.SECONDS)
+      .retryOnConnectionFailure(true)
+      .build());
     client = builder.build();
 
     this.bucket = bucketProperty;
