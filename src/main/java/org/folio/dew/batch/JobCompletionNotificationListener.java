@@ -239,7 +239,6 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
   }
 
   private String saveResult(JobExecution jobExecution) {
-    log.info("MODEXPW-150");
     var path = preparePath(jobExecution);
     try {
       if (isEmpty(path) || noRecordsFound(path)) {

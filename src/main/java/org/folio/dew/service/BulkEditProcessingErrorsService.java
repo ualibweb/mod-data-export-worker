@@ -103,6 +103,7 @@ public class BulkEditProcessingErrorsService {
   }
 
   public String saveErrorFileAndGetDownloadLink(String jobId) {
+    log.info("MODEXPW-150");
     var pathToStorage = getPathToStorage(jobId);
     if (Files.exists(pathToStorage)) {
       try (Stream<Path> stream = Files.list(pathToStorage)) {
