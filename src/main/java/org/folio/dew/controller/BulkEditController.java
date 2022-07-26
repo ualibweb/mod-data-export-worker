@@ -41,6 +41,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -73,8 +76,13 @@ import org.folio.dew.service.BulkEditRollBackService;
 import org.folio.dew.service.ItemUpdatesResult;
 import org.folio.dew.service.JobCommandsReceiverService;
 import org.folio.dew.utils.CsvHelper;
+import org.folio.spring.DefaultFolioExecutionContext;
+import org.folio.spring.FolioExecutionContext;
+import org.folio.spring.FolioModuleMetadata;
+import org.folio.spring.scope.FolioExecutionScopeExecutionContextManager;
 import org.openapitools.api.JobIdApi;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecutionException;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.integration.launch.JobLaunchRequest;
 import org.springframework.beans.factory.annotation.Value;
@@ -115,6 +123,8 @@ public class BulkEditController implements JobIdApi {
   private final BulkEditItemContentUpdateService itemContentUpdateService;
   private final BulkEditParseService bulkEditParseService;
   private final MinIOObjectStorageRepository repository;
+  private final FolioModuleMetadata folioModuleMetadata;
+  private final FolioExecutionContext folioExecutionContext;
 
   @Value("${spring.application.name}")
   private String springApplicationName;
@@ -233,7 +243,19 @@ public class BulkEditController implements JobIdApi {
         var job = getBulkEditJob(jobCommand);
         var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
         log.info("Launching bulk edit user identifiers job.");
-        exportJobManagerSync.launchJob(jobLaunchRequest);
+        var tenantId = folioExecutionContext.getTenantId();
+        var headers = folioExecutionContext.getOkapiHeaders();
+        new Thread(() -> {
+          Map<String, Collection<String>> okapiHeaders = new HashMap<>(headers);
+          okapiHeaders.put("x-okapi-tenant", List.of(tenantId));
+          var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
+          FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
+          try {
+            exportJobManagerSync.launchJob(jobLaunchRequest);
+          } catch (JobExecutionException e) {
+            throw new RuntimeException(e);
+          }
+        }).start();
       }
       var numberOfLines = jobCommand.getJobParameters().getLong(TOTAL_CSV_LINES);
       return new ResponseEntity<>(Long.toString(isNull(numberOfLines) ? 0 : numberOfLines), HttpStatus.OK);
@@ -257,10 +279,22 @@ public class BulkEditController implements JobIdApi {
     var jobLaunchRequest = new JobLaunchRequest(job, jobCommand.getJobParameters());
     try {
       log.info("Launching bulk-edit job.");
-      var execution = exportJobManagerSync.launchJob(jobLaunchRequest);
-      if (isBulkEditUpdate(jobCommand)) {
-        bulkEditRollBackService.putExecutionInfoPerJob(execution.getId(), jobId);
-      }
+      var tenantId = folioExecutionContext.getTenantId();
+      var headers = folioExecutionContext.getOkapiHeaders();
+      new Thread(() -> {
+        Map<String, Collection<String>> okapiHeaders = new HashMap<>(headers);
+        okapiHeaders.put("x-okapi-tenant", List.of(tenantId));
+        var defaultFolioExecutionContext = new DefaultFolioExecutionContext(folioModuleMetadata, okapiHeaders);
+        FolioExecutionScopeExecutionContextManager.beginFolioExecutionContext(defaultFolioExecutionContext);
+        try {
+          exportJobManagerSync.launchJob(jobLaunchRequest);
+        } catch (JobExecutionException e) {
+          throw new RuntimeException(e);
+        }
+      }).start();
+//      if (isBulkEditUpdate(jobCommand)) {
+//        bulkEditRollBackService.putExecutionInfoPerJob(execution.getId(), jobId);
+//      }
     } catch (Exception e) {
       var errorMessage = e.getMessage();
       log.error(errorMessage);
