@@ -8,7 +8,7 @@ paths:
   /{jobId}/items-content-update/upload:
     post:
       description: Upload item content updates
-      operationId: postItemContentUpdates
+      operationId: postContentUpdates
       parameters:
         - name: jobId
           in: path
