@@ -5,8 +5,10 @@ import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_TOTAL_
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
+import javax.annotation.PreDestroy;
+import lombok.extern.log4j.Log4j2;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceDTO;
 import org.folio.dew.repository.EHoldingsResourceRepository;
 import org.springframework.batch.core.JobExecution;
@@ -17,6 +19,7 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;
 
+@Log4j2
 @Component("GetEHoldingsWriter")
 @StepScope
 public class GetEHoldingsWriter implements ItemWriter<EHoldingsResourceDTO> {
@@ -25,6 +28,13 @@ public class GetEHoldingsWriter implements ItemWriter<EHoldingsResourceDTO> {
   private JobExecution jobExecution;
   private ExecutionContext stepExecutionContext;
   private final EHoldingsResourceRepository repository;
+
+  private final AtomicInteger writeCount = new AtomicInteger(0);
+
+  @PreDestroy
+  public void logCount() {
+    log.info("KEK. Written to db: {}", writeCount.get());
+  }
 
   public GetEHoldingsWriter(EHoldingsResourceRepository repository) {
     this.repository = repository;
@@ -44,6 +54,8 @@ public class GetEHoldingsWriter implements ItemWriter<EHoldingsResourceDTO> {
     repository.saveAll(resources);
     jobExecution.getExecutionContext().putInt(CONTEXT_TOTAL_RESOURCES,
       jobExecution.getExecutionContext().getInt(CONTEXT_TOTAL_RESOURCES, 0) + resources.size());
+
+    writeCount.getAndAdd(resources.size());
 
     var resourceWithMaxNotes = list.stream()
       .max(Comparator.comparing(p -> p.getNotes().size()))

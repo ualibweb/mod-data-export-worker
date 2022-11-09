@@ -3,6 +3,9 @@ package org.folio.dew.batch.eholdings;
 import static org.folio.dew.batch.eholdings.EHoldingsJobConstants.CONTEXT_TOTAL_RESOURCES;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.PreDestroy;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.folio.de.entity.EHoldingsResource;
 import org.folio.dew.config.properties.EHoldingsJobProperties;
@@ -13,13 +16,21 @@ import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 
+@Log4j2
 @Component
 @StepScope
 public class DatabaseEHoldingsReader extends AbstractEHoldingsReader<EHoldingsResourceDTO> {
   private Long jobExecutionId;
   private final EHoldingsResourceRepository resourceRepository;
 
+  private final AtomicInteger readCount = new AtomicInteger(0);
+
   private int totalResources;
+
+  @PreDestroy
+  public void logCount() {
+    log.info("KEK. Read from db: {}", readCount.get());
+  }
 
   protected DatabaseEHoldingsReader(EHoldingsResourceRepository resourceRepository,
                                     EHoldingsJobProperties jobProperties) {
@@ -33,6 +44,7 @@ public class DatabaseEHoldingsReader extends AbstractEHoldingsReader<EHoldingsRe
 
     var executionContext = stepExecution.getJobExecution().getExecutionContext();
     totalResources = executionContext.getInt(CONTEXT_TOTAL_RESOURCES, 1);
+    log.info("KEK. Total resources from context: {}", totalResources);
   }
 
   @Override
@@ -47,6 +59,8 @@ public class DatabaseEHoldingsReader extends AbstractEHoldingsReader<EHoldingsRe
     }
 
     eHoldingsResources = resourceRepository.seek(resourceName, resourceId, jobExecutionId, limit);
+
+    readCount.getAndAdd(eHoldingsResources.size());
     return EHoldingsResourceMapper.convertToDTO(eHoldingsResources);
   }
 

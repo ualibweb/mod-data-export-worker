@@ -22,8 +22,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javax.annotation.PreDestroy;
+import lombok.extern.log4j.Log4j2;
 import org.folio.de.entity.EHoldingsPackage;
 import org.folio.dew.domain.dto.EHoldingsExportConfig;
 import org.folio.dew.domain.dto.eholdings.EHoldingsResourceExportFormat;
@@ -41,6 +44,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 
+@Log4j2
 @Component
 @StepScope
 public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsResourceExportFormat> {
@@ -52,6 +56,13 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
   private final EHoldingsPackageRepository packageRepository;
   private final EHoldingsExportConfig exportConfig;
   private final EHoldingsToExportFormatMapper mapper;
+
+  private final AtomicInteger writeCount = new AtomicInteger(0);
+
+  @PreDestroy
+  public void logCount() {
+    log.info("KEK. Written to file: {}", writeCount.get());
+  }
 
   public EHoldingsCsvFileWriter(@Value("#{jobParameters['tempOutputFilePath']}") String tempOutputFilePath,
                                 EHoldingsExportConfig exportConfig,
@@ -94,6 +105,8 @@ public class EHoldingsCsvFileWriter extends AbstractFileItemWriter<EHoldingsReso
   @NotNull
   @Override
   protected String doWrite(List<? extends EHoldingsResourceExportFormat> items) {
+
+    writeCount.getAndAdd(items.size());
     return items.stream()
       .map(item -> getItemRow(maxTitleNotesLength, item, exportConfig.getTitleFields()))
       .collect(Collectors.joining(lineSeparator, EMPTY, lineSeparator));

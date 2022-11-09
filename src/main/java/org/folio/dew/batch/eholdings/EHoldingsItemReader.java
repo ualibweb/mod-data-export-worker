@@ -7,7 +7,10 @@ import static org.folio.dew.domain.dto.EHoldingsExportConfig.RecordTypeEnum.RESO
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import javax.annotation.PreDestroy;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections.CollectionUtils;
 import org.folio.dew.batch.CsvItemReader;
 import org.folio.dew.client.KbEbscoClient;
@@ -19,6 +22,7 @@ import org.folio.dew.domain.dto.eholdings.ResourcesData;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.stereotype.Component;
 
+@Log4j2
 @Component
 @StepScope
 public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceDTO> {
@@ -30,6 +34,12 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceDTO> {
   private final List<String> titleFields;
   private final String titleSearchFilters;
   private final String recordId;
+  private final AtomicInteger readCount = new AtomicInteger(0);
+
+  @PreDestroy
+  public void logCount() {
+    log.info("KEK. Read from kb: {}", readCount.get());
+  }
 
   protected EHoldingsItemReader(KbEbscoClient kbEbscoClient, EHoldingsExportConfig exportConfig,
                                 EHoldingsJobProperties jobProperties) {
@@ -56,6 +66,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceDTO> {
     if (recordType == PACKAGE && CollectionUtils.isNotEmpty(titleFields)) {
       var parameters = kbEbscoClient.constructParams(offset, limit, titleSearchFilters, ACCESS_TYPE);
       var packageResources = kbEbscoClient.getResourcesByPackageId(recordId, parameters);
+      readCount.getAndAdd(packageResources.getData().size());
 
       return getEHoldingsResources(packageResources.getData());
     }
@@ -76,6 +87,7 @@ public class EHoldingsItemReader extends CsvItemReader<EHoldingsResourceDTO> {
       var parameters = kbEbscoClient.constructParams(1, 1, titleSearchFilters);
       var resources = kbEbscoClient.getResourcesByPackageId(recordId, parameters);
       var totalResults = resources.getMeta().getTotalResults();
+      log.info("KEK. Total results: {}", totalResults);
       return totalResults > 0 ? totalResults : 1;
     } else if (recordType == RESOURCE) {
       return 1;
