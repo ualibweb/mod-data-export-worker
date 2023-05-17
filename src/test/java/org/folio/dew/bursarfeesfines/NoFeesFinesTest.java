@@ -1,4 +1,4 @@
-package org.folio.dew;
+package org.folio.dew.bursarfeesfines;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import org.folio.dew.BaseBatchTest;
 import org.folio.dew.batch.bursarfeesfines.service.BursarExportService;
 import org.folio.dew.domain.dto.BursarExportDataToken;
 import org.folio.dew.domain.dto.BursarExportFilterPass;
@@ -37,7 +38,7 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class BursarFeesFinesTest extends BaseBatchTest {
+class NoFeesFinesTest extends BaseBatchTest {
 
   private static final String USERS_ENDPOINT_PATH = "/users";
   private static final String ITEMS_ENDPOINT_PATH = "/inventory/items";
