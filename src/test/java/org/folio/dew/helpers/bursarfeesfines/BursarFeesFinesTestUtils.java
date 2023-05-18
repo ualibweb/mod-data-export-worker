@@ -40,8 +40,8 @@ public class BursarFeesFinesTestUtils {
   public static final String SERVICE_POINTS_GET_REQUEST =
     "/service-points?query=code%3D%3Dsystem&limit=2";
 
-  public static final String TRANSFER_ACCOUNTS_ENDPOINT = "/accounts-bulk/transfer";
-
+  public static final String TRANSFER_ACCOUNTS_ENDPOINT =
+    "/accounts-bulk/transfer";
 
   public static JobParameters prepareNoFeesFinesJobParameters(
     String springApplicationName,
@@ -121,9 +121,10 @@ public class BursarFeesFinesTestUtils {
     BursarExportTokenLengthControl lengthControl = new BursarExportTokenLengthControl();
     lengthControl.setLength(30);
     lengthControl.setCharacter(" ");
-    lengthControl.setDirection(BursarExportTokenLengthControl.DirectionEnum.BACK);
+    lengthControl.setDirection(
+      BursarExportTokenLengthControl.DirectionEnum.BACK
+    );
     lengthControl.setTruncate(true);
-
 
     List<BursarExportHeaderFooter> headerTokens = new ArrayList<>();
     BursarExportTokenAggregate headerAggregate = new BursarExportTokenAggregate();
@@ -137,7 +138,6 @@ public class BursarFeesFinesTestUtils {
 
     job.setHeader(headerTokens);
 
-
     List<BursarExportHeaderFooter> footerTokens = new ArrayList<>();
     BursarExportTokenAggregate footerAggregate = new BursarExportTokenAggregate();
     footerAggregate.setValue(BursarExportTokenAggregate.ValueEnum.NUM_ROWS);
@@ -145,7 +145,6 @@ public class BursarFeesFinesTestUtils {
     footerTokens.add(footerAggregate);
 
     job.setFooter(footerTokens);
-
 
     List<BursarExportDataToken> dataTokens = new ArrayList<>();
 
@@ -159,7 +158,6 @@ public class BursarFeesFinesTestUtils {
     BursarExportTokenUserData tokenUserData = new BursarExportTokenUserData();
     tokenUserData.setLengthControl(lengthControl);
     tokenUserData.setValue(BursarExportTokenUserData.ValueEnum.FOLIO_ID);
-
 
     dataTokens.add(tokenFeeMetadata);
     dataTokens.add(tokenItemData);
@@ -195,9 +193,9 @@ public class BursarFeesFinesTestUtils {
     Date now = new Date();
     String workDir =
       System.getProperty("java.io.tmpdir") +
-        File.separator +
-        springApplicationName +
-        File.separator;
+      File.separator +
+      springApplicationName +
+      File.separator;
     final String outputFile = String.format(
       "%s%s_%tF_%tH%tM%tS_%s",
       workDir,

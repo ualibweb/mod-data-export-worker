@@ -23,6 +23,7 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class NoFeesFinesTest extends BaseBatchTest {
+
   @Autowired
   private Job bursarExportJob;
 
@@ -64,25 +65,35 @@ class NoFeesFinesTest extends BaseBatchTest {
 
     // check that the ACCOUNT_GET_REQUEST endpoint was hit
     wireMockServer.verify(
-      getRequestedFor(urlEqualTo(BursarFeesFinesTestUtils.ALL_OPEN_ACCOUNTS_GET_REQUEST))
+      getRequestedFor(
+        urlEqualTo(BursarFeesFinesTestUtils.ALL_OPEN_ACCOUNTS_GET_REQUEST)
+      )
     );
 
     // check that user and items endpoints were not hit
     wireMockServer.verify(
       0,
-      getRequestedFor(urlPathMatching(BursarFeesFinesTestUtils.USERS_ENDPOINT_PATH))
+      getRequestedFor(
+        urlPathMatching(BursarFeesFinesTestUtils.USERS_ENDPOINT_PATH)
+      )
     );
     wireMockServer.verify(
       0,
-      getRequestedFor(urlPathMatching(BursarFeesFinesTestUtils.ITEMS_ENDPOINT_PATH))
+      getRequestedFor(
+        urlPathMatching(BursarFeesFinesTestUtils.ITEMS_ENDPOINT_PATH)
+      )
     );
     wireMockServer.verify(
       0,
-      postRequestedFor(urlPathMatching(BursarFeesFinesTestUtils.TRANSFERS_ENDPOINT_PATH))
+      postRequestedFor(
+        urlPathMatching(BursarFeesFinesTestUtils.TRANSFERS_ENDPOINT_PATH)
+      )
     );
     wireMockServer.verify(
       0,
-      getRequestedFor(urlEqualTo(BursarFeesFinesTestUtils.SERVICE_POINTS_GET_REQUEST))
+      getRequestedFor(
+        urlEqualTo(BursarFeesFinesTestUtils.SERVICE_POINTS_GET_REQUEST)
+      )
     );
 
     // check that no new file was created

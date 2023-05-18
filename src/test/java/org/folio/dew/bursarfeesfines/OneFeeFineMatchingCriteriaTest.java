@@ -26,13 +26,16 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 
-public class OneFeeFineMatchingCriteriaTest extends BaseBatchTest {
+class OneFeeFineMatchingCriteriaTest extends BaseBatchTest {
 
-  private static final String GET_USERS_REQUEST = "/users?query=id%3D%3D%28%28bec20636-fb68-41fd-84ea-2cf910673599%20or%202205005b-ca51-4a04-87fd-938eefa8f6de%29%29&limit=50";
+  private static final String GET_USERS_REQUEST =
+    "/users?query=id%3D%3D%28%28bec20636-fb68-41fd-84ea-2cf910673599%20or%202205005b-ca51-4a04-87fd-938eefa8f6de%29%29&limit=50";
 
-  private static final String GET_ITEMS_REQUEST = "/inventory/items?query=id%3D%3D%28%28100d10bf-2f06-4aa0-be15-0b95b2d9f9e4%20or%20100d10bf-2f06-4aa0-be15-0b95b2d9f9e3%29%29&limit=50";
+  private static final String GET_ITEMS_REQUEST =
+    "/inventory/items?query=id%3D%3D%28%28100d10bf-2f06-4aa0-be15-0b95b2d9f9e4%20or%20100d10bf-2f06-4aa0-be15-0b95b2d9f9e3%29%29&limit=50";
 
-  private static final String EXPECTED_CHARGE_OUTPUT = "src/test/resources/output/bursar_one_matching_fee.dat";
+  private static final String EXPECTED_CHARGE_OUTPUT =
+    "src/test/resources/output/bursar_one_matching_fee.dat";
 
   @Autowired
   private Job bursarExportJob;
@@ -263,12 +266,9 @@ public class OneFeeFineMatchingCriteriaTest extends BaseBatchTest {
                     "id" : "cc7a9cc0-6db7-4e24-b331-6b0655c8b4d4"
                   } ]
                 }"""
-
             )
         )
     );
-
-
 
     JobLauncherTestUtils testLauncher = createTestLauncher(bursarExportJob);
 
@@ -283,7 +283,6 @@ public class OneFeeFineMatchingCriteriaTest extends BaseBatchTest {
 
     verifyServerCalls();
 
-
     // check file content
     final ExecutionContext executionContext = jobExecution.getExecutionContext();
     final String filesInStorage = (String) executionContext.get(
@@ -292,25 +291,27 @@ public class OneFeeFineMatchingCriteriaTest extends BaseBatchTest {
 
     final String[] split = filesInStorage.split(";");
 
-    final FileSystemResource actualChargeFeesFinesOutput = actualFileOutput(split[0]);
-    FileSystemResource expectedCharges = new FileSystemResource(EXPECTED_CHARGE_OUTPUT);
+    final FileSystemResource actualChargeFeesFinesOutput = actualFileOutput(
+      split[0]
+    );
+    FileSystemResource expectedCharges = new FileSystemResource(
+      EXPECTED_CHARGE_OUTPUT
+    );
 
-    Assertions.assertThat(expectedCharges.getFile()).usingCharset("UTF-8").hasSameTextualContentAs(actualChargeFeesFinesOutput.getFile());
+    Assertions
+      .assertThat(expectedCharges.getFile())
+      .usingCharset("UTF-8")
+      .hasSameTextualContentAs(actualChargeFeesFinesOutput.getFile());
   }
 
-
-  private void verifyServerCalls(){
+  private void verifyServerCalls() {
     wireMockServer.verify(
       getRequestedFor(
         urlEqualTo(BursarFeesFinesTestUtils.ALL_OPEN_ACCOUNTS_GET_REQUEST)
       )
     );
 
-    wireMockServer.verify(
-      getRequestedFor(
-        urlEqualTo(GET_USERS_REQUEST)
-      )
-    );
+    wireMockServer.verify(getRequestedFor(urlEqualTo(GET_USERS_REQUEST)));
     wireMockServer.verify(
       getRequestedFor(
         urlPathMatching(BursarFeesFinesTestUtils.ITEMS_ENDPOINT_PATH)
@@ -337,18 +338,27 @@ public class OneFeeFineMatchingCriteriaTest extends BaseBatchTest {
     );
 
     wireMockServer.verify(
-      postRequestedFor(urlEqualTo(BursarFeesFinesTestUtils.TRANSFER_ACCOUNTS_ENDPOINT))
+      postRequestedFor(
+        urlEqualTo(BursarFeesFinesTestUtils.TRANSFER_ACCOUNTS_ENDPOINT)
+      )
         .withRequestBody(matchingJsonPath("$.amount", equalTo("100.0")))
         .withRequestBody(
           matchingJsonPath(
-            "$.servicePointId", equalTo("afdb59ae-1185-4cd7-94dd-39a87fe01c51")))
-        .withRequestBody(matchingJsonPath("$.paymentMethod", equalTo("Transfer2bursar")))
+            "$.servicePointId",
+            equalTo("afdb59ae-1185-4cd7-94dd-39a87fe01c51")
+          )
+        )
+        .withRequestBody(
+          matchingJsonPath("$.paymentMethod", equalTo("Transfer2bursar"))
+        )
         .withRequestBody(matchingJsonPath("$.notifyPatron", equalTo("false")))
         .withRequestBody(matchingJsonPath("$.userName", equalTo("System")))
         .withRequestBody(
           matchingJsonPath(
             "$.accountIds",
-            equalTo(
-              "[ \"807becbc-c3e6-4871-bf38-d140597e41cb\" ]"))));
+            equalTo("[ \"807becbc-c3e6-4871-bf38-d140597e41cb\" ]")
+          )
+        )
+    );
   }
 }
