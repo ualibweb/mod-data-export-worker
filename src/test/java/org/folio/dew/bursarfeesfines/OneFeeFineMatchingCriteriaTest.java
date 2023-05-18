@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
@@ -31,7 +32,6 @@ public class OneFeeFineMatchingCriteriaTest extends BaseBatchTest {
 
   private static final String GET_ITEMS_REQUEST = "/inventory/items?query=id%3D%3D%28%28100d10bf-2f06-4aa0-be15-0b95b2d9f9e4%20or%20100d10bf-2f06-4aa0-be15-0b95b2d9f9e3%29%29&limit=50";
 
-  private static final String GET_TRANSFER_ACCOUNTS_REQUEST = "/lala";
   private static final String EXPECTED_CHARGE_OUTPUT = "src/test/resources/output/bursar_one_matching_fee.dat";
 
   @Autowired
@@ -236,9 +236,9 @@ public class OneFeeFineMatchingCriteriaTest extends BaseBatchTest {
         )
     );
 
-    // stub request to get transfer accounts
+    // stub request to transfer accounts
     wireMockServer.stubFor(
-      get(urlEqualTo(GET_TRANSFER_ACCOUNTS_REQUEST))
+      post(urlEqualTo(BursarFeesFinesTestUtils.TRANSFER_ACCOUNTS_ENDPOINT))
         .willReturn(
           aResponse()
             .withStatus(200)
