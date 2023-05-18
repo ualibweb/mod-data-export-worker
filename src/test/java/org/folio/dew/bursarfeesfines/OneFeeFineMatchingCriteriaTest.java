@@ -11,6 +11,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 import org.assertj.core.api.Assertions;
 import org.folio.dew.BaseBatchTest;
@@ -288,6 +289,8 @@ class OneFeeFineMatchingCriteriaTest extends BaseBatchTest {
     final String filesInStorage = (String) executionContext.get(
       "outputFilesInStorage"
     );
+
+    assertThat(filesInStorage, notNullValue());
 
     final String[] split = filesInStorage.split(";");
 
