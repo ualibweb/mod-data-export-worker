@@ -33,19 +33,11 @@ public class BursarExportStepListener extends BaseStepListener {
       return stepExecution.getExitStatus();
     }
 
-    var jobExecution = stepExecution.getJobExecution();
-
-    if (!stepExecution.getFailureExceptions().isEmpty()) {
-      stepExecution
-        .getFailureExceptions()
-        .forEach(jobExecution::addFailureException);
-      return ExitStatus.FAILED;
-    }
-
     var exitStatus = stepExecution.getExitStatus();
     var localFilesStorage = super.getLocalFilesStorage();
     var remoteFilesStorage = super.getRemoteFilesStorage();
 
+    var jobExecution = stepExecution.getJobExecution();
     String downloadFilename = jobExecution
       .getExecutionContext()
       .getString("filename");

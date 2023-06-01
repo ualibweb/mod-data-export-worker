@@ -7,7 +7,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -64,10 +63,14 @@ class NoFeesFinesTest extends BaseBatchTest {
 
     // job status should be FAILED
     assertThat(jobExecution.getExitStatus(), is(ExitStatus.FAILED));
-    assertThat(jobExecution.getAllFailureExceptions(), hasSize(1));
     assertThat(
-      jobExecution.getAllFailureExceptions().get(0).getMessage(),
-      containsString("No accounts found")
+      jobExecution
+        .getAllFailureExceptions()
+        .stream()
+        .map(Throwable::getMessage)
+        .filter(message -> message.contains("No accounts found"))
+        .toList(),
+      hasSize(1)
     );
 
     // check that the ACCOUNT_GET_REQUEST endpoint was hit
