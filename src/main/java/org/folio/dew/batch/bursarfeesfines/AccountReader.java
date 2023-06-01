@@ -60,7 +60,10 @@ public class AccountReader implements ItemReader<AccountWithAncillaryData> {
 
     if (accounts.isEmpty()) {
       log.error("No accounts found, terminating job...");
-      throw new IllegalStateException("No accounts found");
+      stepExecution.addFailureException(
+        new IllegalStateException("No accounts found")
+      );
+      return;
     }
 
     Set<String> userIds = new HashSet<>(

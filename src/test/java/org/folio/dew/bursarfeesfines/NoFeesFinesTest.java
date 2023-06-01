@@ -64,7 +64,6 @@ class NoFeesFinesTest extends BaseBatchTest {
 
     // job status should be FAILED
     assertThat(jobExecution.getExitStatus(), is(ExitStatus.FAILED));
-    assertThat(jobExecution.getAllFailureExceptions(), is(nullValue()));
     assertThat(jobExecution.getAllFailureExceptions(), hasSize(1));
     assertThat(
       jobExecution.getAllFailureExceptions().get(0).getMessage(),
