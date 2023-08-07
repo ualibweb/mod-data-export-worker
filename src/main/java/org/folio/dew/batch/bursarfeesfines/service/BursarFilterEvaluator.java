@@ -105,8 +105,6 @@ public class BursarFilterEvaluator {
       Instant.now()
     );
 
-    log.info("Account age: {}", accountAge);
-
     switch (filter.getCondition()) {
       case LESS_THAN:
         return accountAge < numDaysFilter;
